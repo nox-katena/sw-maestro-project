@@ -29,6 +29,7 @@ async def agent2(req: AgentRequest) -> AgentResult:
     def _fmt(l):
         status = "접수중" if l.is_open is True else "마감" if l.is_open is False else "상태미상"
         
+        # 💡 [추가된 로직] 파이썬 내장 기능으로 요일을 계산해서 LLM에게 떠먹여 줍니다.
         try:
             date_obj = datetime.strptime(l.dateStr, "%Y-%m-%d")
             weekday_kr = ["월", "화", "수", "목", "금", "토", "일"][date_obj.weekday()]
@@ -38,8 +39,7 @@ async def agent2(req: AgentRequest) -> AgentResult:
             
         return f"- [{status}] {l.title} ({date_info} {l.timeRangeStr}, {l.author}) {l.url}"
 
-    active_lectures = [l for l in req.lectures if l.is_open]
-    lectures_text = "\n".join(_fmt(l) for l in active_lectures)
+    lectures_text = "\n".join(_fmt(l) for l in req.lectures)
 
     # 일정 필터링의 핵심: LLM이 "내일", "다음 주" 등을 계산할 수 있도록 시스템 현재 시간 제공
     current_time_info = f"현재 기준 시간: {datetime.now().strftime('%Y-%m-%d %H:%M (%A)')}"
